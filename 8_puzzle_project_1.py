@@ -1,6 +1,7 @@
 import heapq
 import copy
 import time
+import matplotlib.pyplot as plt
 
 trivial = [[1, 2, 3],
            [4, 5, 6],
@@ -17,6 +18,9 @@ medium = [[0, 1, 2],
 hard = [[8, 7, 1],
         [6, 0, 2],
         [5, 4, 3]]
+veryHard = [[8, 6, 7],
+            [2, 5, 4],
+            [3, 0, 1]]
 goal_state = [[1, 2, 3],
               [4, 5, 6],
               [7, 8, 0]]
@@ -60,11 +64,64 @@ def heuristic_manhattan(state, size): #Calculates the total sum of distances of 
             value = value + abs(goal_state_map[state[i][j]][0] - i) + abs(goal_state_map[state[i][j]][1] - j)
     return value
 
+def visualization():
+    
+    depth = []
+    uniform_search_time = []
+    uniform_nodes_expanded = []
+    uniform_search_max_queue = []
+    misplaced_heuristic_time = []
+    misplaced_search_node_expanded = []
+    misplaced_search_max_queue = []
+    manhattan_time = []
+    manhattan_search_nodes_explored = []
+    manhattan_search_max_queue = []
+    for state in [trivial, veryEasy, easy, medium, hard, veryHard]:
+        
+        depth, nodes_expanded_count, max_queue, time, = general_search(state, 0, 3)
+        uniform_search_time.append(time)
+        uniform_nodes_expanded.append(nodes_expanded_count)
+        uniform_search_max_queue.append(max_queue)
+
+        depth, nodes_expanded_count, max_queue, time, = general_search(state, 1, 3)
+        misplaced_heuristic_time.append(time)
+        misplaced_search_node_expanded.append(nodes_expanded_count)
+        misplaced_search_max_queue.append(max_queue)
+
+        depth, nodes_expanded_count, max_queue, time, = general_search(state, 2, 3)
+        manhattan_time.append(time)
+        manhattan_search_nodes_explored.append(nodes_expanded_count)
+        manhattan_search_max_queue.append(max_queue)
+    
+    plt.plot(depth, uniform_search_time, label = 'Uniform Cost Search')
+    plt.plot(depth, misplaced_heuristic_time, label = 'A* with Misplaced Tile Heuristic')
+    plt.plot(depth, manhattan_time, label = 'A* with Manhattan Distance Heuristic')
+    plt.xlabel('Solution Depth')
+    plt.ylabel('Time taken')
+    plt.legend()
+    plt.show()
+
+    plt.plot(depth, uniform_nodes_expanded, label = 'Uniform Cost Search')
+    plt.plot(depth, misplaced_search_node_expanded, label = 'A* with Misplaced Tile Heuristic')
+    plt.plot(depth, manhattan_search_nodes_explored, label = 'A* with Manhattan Distance Heuristic')
+    plt.xlabel('Solution Depth')
+    plt.ylabel('Number of nodes expanded')
+    plt.legend()
+    plt.show()
+
+    plt.plot(depth, uniform_search_max_queue, label = 'Uniform Cost Search')
+    plt.plot(depth, misplaced_search_max_queue, label = 'A* with Misplaced Tile Heuristic')
+    plt.plot(depth, manhattan_search_max_queue, label = 'A* with Manhattan Distance Heuristic')
+    plt.xlabel('Solution Depth')
+    plt.ylabel('Maximum size of Queue')
+    plt.legend()
+    plt.show()
+
 
 def general_search(initial_state, heuristic, size):
 
     start = time.time()
-    h = 0 #adds the heuristic value.
+    h = 0 #adds the heuristic value, 0 for uniform cost search.
     distance = {} #Calculates depth with heuristic value
     depth = {} #Calculates depth of goal state
     nodes_expanded = 0 #Keeps a track of the nodes explored
@@ -86,7 +143,7 @@ def general_search(initial_state, heuristic, size):
             print("Nodes expanded:",nodes_expanded)
             print("Maximum queue size:", nodes_length)
             print("Time taken: %.3f" %(end - start))  
-            return
+            return depth[tuple(tuple(i) for i in goal_state)], nodes_expanded, nodes_length, (end - start)
         node_tuple = tuple(tuple(i) for i in node[1])
         visited.add(node_tuple) #add current node to visited
         nodes_expanded += 1
@@ -113,56 +170,60 @@ def general_search(initial_state, heuristic, size):
                         nodes_length = max(nodes_length,len(nodes))
     print("FAILURE!")   #Goal state not reached
 
-size = 3 #The size can be changed accordingly for 15-puzzle or 25-puzzle
+if __name__ == "__main__":
+    #visualization()
+    size = 3 #The size can be changed accordingly for 15-puzzle or 25-puzzle
 
-print("Welcome to 8-puzzle!")
-print("Enter 1 to select a pre-set board or Enter 2 to build your own")
-n = int(input())
-if n == 1:
-    print("Choose your level of difficulty: \n 1. Trival \n 2. Very Easy \n 3. Easy \n 4. Medium \n 5. Hard")
-    x = int(input())
-    if x == 1:
-        board = trivial
-    elif x == 2:
-        board = veryEasy
-    elif x == 3:
-        board = easy
-    elif x == 4:
-        board = medium
-    elif x == 5:
-        board = hard
-    else:
-        print("Invalid choice")
+    print("Welcome to 8-puzzle!")
+    print("Enter 1 to select a pre-set board or Enter 2 to build your own")
+    n = int(input())
+    if n == 1:
+        print("Choose your level of difficulty: \n 1. Trival \n 2. Very Easy \n 3. Easy \n 4. Medium \n 5. Hard \n 6. Very Hard")
+        x = int(input())
+        if x == 1:
+            board = trivial
+        elif x == 2:
+            board = veryEasy
+        elif x == 3:
+            board = easy
+        elif x == 4:
+            board = medium
+        elif x == 5:
+            board = hard
+        elif x == 6:
+            board = veryHard
+        else:
+            print("Invalid choice")
 
-    print("Choose the search algorithm which you would like to use: \n 0: Uniform Cost Search \n 1: A* with Misplaced tile \n 2: A* with Manhattan Distance")
-    y = int(input())
-    if y == 0:
-        heuristic = 0
-    elif y == 1:
-        heuristic = 1
-    elif y == 2:
-        heuristic = 2
-    else:
-        print("Invalid Choice")
+        print("Choose the search algorithm which you would like to use: \n 0: Uniform Cost Search \n 1: A* with Misplaced tile \n 2: A* with Manhattan Distance")
+        y = int(input())
+        if y == 0:
+            heuristic = 0
+        elif y == 1:
+            heuristic = 1
+        elif y == 2:
+            heuristic = 2
+        else:
+            print("Invalid Choice")
 
-elif n == 2:
-    print("Input your values in a single line by giving a single space between each value. Remember the blank tile is represented as 0!")
-    string = input().split()
-    board = [[int(string[0]), int(string[1]), int(string[2])],
-             [int(string[3]), int(string[4]), int(string[5])],
-             [int(string[6]), int(string[7]), int(string[8])]]
+    elif n == 2:
+        print("Input your values in a single line by giving a single space between each value. Remember the blank tile is represented as 0!")
+        string = input().split()
+        board = [[int(string[0]), int(string[1]), int(string[2])],
+                [int(string[3]), int(string[4]), int(string[5])],
+                [int(string[6]), int(string[7]), int(string[8])]]
 
-    print("Choose the search algorithm which you would like to use: \n 0: Uniform Cost Search \n 1: A* with Misplaced tile \n 2: A* with Manhattan Distance")
-    y = int(input())
-    if y == 0:
-        heuristic = 0
-    elif y == 1:
-        heuristic = 1
-    elif y == 2:
-        heuristic = 2
-    else:
-        print("Invalid Choice")
+        print("Choose the search algorithm which you would like to use: \n 0: Uniform Cost Search \n 1: A* with Misplaced tile \n 2: A* with Manhattan Distance")
+        y = int(input())
+        if y == 0:
+            heuristic = 0
+        elif y == 1:
+            heuristic = 1
+        elif y == 2:
+            heuristic = 2
+        else:
+            print("Invalid Choice")
 
-general_search(board, heuristic, size) 
+    general_search(board, heuristic, size)
 
 
